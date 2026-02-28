@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  RESIGNED
+  SUSPENDED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+}
+
+model Employee {
+  id           String   @id @default(uuid())
+  fullname     String
+  email        String   @unique
+  department   String
+  position     String
+  hireDate     DateTime?
+  status       EmployeeStatus @default(ACTIVE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  attendances  Attendance[]
+  auth         User?
+}
+
+model User {
+  id          String   @id @default(uuid())
+  employeeId  String   @unique
+  username    String   @unique
+  password    String
+  role        UserRole @default(EMPLOYEE)
+
+  employee    Employee @relation(fields: [employeeId], references: [id])
+}
+
+model Attendance {
+  id           String   @id @default(uuid())
+  employeeId   String
+  checkIn      DateTime?
+  photoUrl     String?
+  status       AttendanceStatus
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee     Employee @relation(fields: [employeeId], references: [id])
+}
