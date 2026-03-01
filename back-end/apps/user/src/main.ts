@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { AttendanceModule } from './attendance.module';
+import { UserModule } from './user.module';
 import { AsyncMicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
@@ -7,15 +7,15 @@ import { RpcValidationErrorException } from 'common/errors/rpc-error';
 
 async function bootstrap() {
     const app = await NestFactory.createMicroservice<AsyncMicroserviceOptions>(
-        AttendanceModule,
+        UserModule,
         {
             useFactory: (configService: ConfigService) => ({
                 transport: Transport.TCP,
                 options: {
-                    host: configService.get<string>('ATTENDANCE_SERVICE_HOST'),
-                    port: configService.get<number>('ATTENDANCE_SERVICE_PORT'),
+                    host: configService.getOrThrow<string>('USER_SERVICE_HOST'),
+                    port: configService.getOrThrow<number>('USER_SERVICE_PORT'),
                     retryAttempts:
-                        configService.get<number>('TCP_RETRY_ATTEMPTS'),
+                        configService.getOrThrow<number>('TCP_RETRY_ATTEMPTS'),
                 },
             }),
             inject: [ConfigService],
@@ -39,9 +39,10 @@ async function bootstrap() {
     await app.listen();
 
     const configService = app.get(ConfigService);
-    const host = configService.getOrThrow<string>('ATTENDANCE_SERVICE_HOST');
-    const port = configService.getOrThrow<string>('ATTENDANCE_SERVICE_PORT');
+    const host = configService.getOrThrow<string>('USER_SERVICE_HOST');
+    const port = configService.getOrThrow<string>('USER_SERVICE_PORT');
 
     console.log(`ATTENDANCE MICROSERVICE RUNNING ON ${host}:${port}`);
 }
+
 void bootstrap();

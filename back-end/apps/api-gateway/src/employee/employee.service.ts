@@ -1,10 +1,12 @@
 import {
+    BadRequestException,
     Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { EMPLOYEE_SERVICE } from 'common/const';
 import {
     CreateEmployeeDto,
     GetEmployeesDto,
@@ -17,7 +19,7 @@ import { firstValueFrom } from 'rxjs';
 @Injectable()
 export class EmployeeService {
     constructor(
-        @Inject('EMPLOYEE_SERVICE')
+        @Inject(EMPLOYEE_SERVICE)
         private readonly clientEmployeeService: ClientProxy,
     ) {}
 
@@ -59,7 +61,15 @@ export class EmployeeService {
                     data: dto,
                 }),
             );
-        } catch {
+        } catch (err: unknown) {
+            if (isRpcError(err) && err.code === RpcErrorCode.NOT_RECORD) {
+                throw new NotFoundException('Not record found.');
+            }
+
+            if (isRpcError(err) && err.code === RpcErrorCode.VALIDATION_ERROR) {
+                throw new BadRequestException(err.message);
+            }
+
             throw new InternalServerErrorException('Something wrong...');
         }
     }

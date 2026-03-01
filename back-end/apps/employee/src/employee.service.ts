@@ -8,6 +8,7 @@ import {
 import {
     RpcInternalErrorException,
     RpcNotRecordException,
+    RpcValidationErrorException,
 } from 'common/errors/rpc-error';
 import { PrismaService } from '@app/prisma';
 import { GetEmployeesDto } from 'common/dto/employee.dto';
@@ -44,9 +45,27 @@ export class EmployeeService {
     }
 
     async createEmployee(data: EmployeeCreateInput): Promise<Employee> {
-        return await this.prisma.employee.create({
-            data: data,
-        });
+        try {
+            const employee = await this.prisma.employee.create({
+                data: data,
+            });
+
+            return employee;
+        } catch (err) {
+            if (err instanceof PrismaClientKnownRequestError) {
+                if (err.code === '2025') {
+                    throw new RpcNotRecordException('Employee not found.');
+                }
+
+                if (err.code === 'P2002') {
+                    throw new RpcValidationErrorException(
+                        'Unique constraint violated.',
+                    );
+                }
+            }
+
+            throw new RpcInternalErrorException('Database error.');
+        }
     }
 
     async updateEmployee(
@@ -61,11 +80,14 @@ export class EmployeeService {
 
             return employee;
         } catch (err) {
-            if (
-                err instanceof PrismaClientKnownRequestError &&
-                err.code === '2025'
-            ) {
-                throw new RpcNotRecordException('Employee not found.');
+            if (err instanceof PrismaClientKnownRequestError) {
+                if (err.code === '2025') {
+                    throw new RpcNotRecordException('Employee not found.');
+                }
+
+                if (err.code === 'P2002') {
+                    throw new RpcValidationErrorException(err.message);
+                }
             }
 
             throw new RpcInternalErrorException('Database error.');

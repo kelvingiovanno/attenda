@@ -19,6 +19,8 @@ export class AttendanceService {
             take: 3,
         });
 
+        console.log(attendances);
+
         if (!attendances) {
             throw new RpcNotRecordException('Employee not found.');
         }

@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { EMPLOYEE_SERVICE } from 'common/const';
+import { USER_SERVICE } from 'common/const';
 
 @Module({
     imports: [
         ClientsModule.registerAsync([
             {
-                name: EMPLOYEE_SERVICE,
+                name: USER_SERVICE,
                 useFactory: (configService: ConfigService) => ({
                     transport: Transport.TCP,
                     options: {
                         host: configService.getOrThrow<string>(
-                            'EMPLOYEE_SERVICE_HOST',
+                            'USER_SERVICE_HOST',
                         ),
                         port: configService.getOrThrow<number>(
-                            'EMPLOYEE_SERVICE_PORT',
+                            'USER_SERVICE_PORT',
                         ),
                     },
                 }),
@@ -25,4 +25,4 @@ import { EMPLOYEE_SERVICE } from 'common/const';
     ],
     exports: [ClientsModule],
 })
-export class EmployeeClientModule {}
+export class UserClientModule {}

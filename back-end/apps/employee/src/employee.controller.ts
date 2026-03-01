@@ -12,7 +12,7 @@ export class EmployeeController {
     constructor(private readonly employeeService: EmployeeService) {}
 
     @MessagePattern('get_employees')
-    async getEmployees(@Payload() dto: GetEmployeesDto) {
+    async getEmployees(@Payload('data') dto: GetEmployeesDto) {
         return this.employeeService.getEmployees(dto);
     }
 

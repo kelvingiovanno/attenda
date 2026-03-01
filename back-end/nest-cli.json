@@ -28,13 +28,13 @@
         "tsConfigPath": "apps/attendance/tsconfig.app.json"
       }
     },
-    "auth": {
+    "user": {
       "type": "application",
-      "root": "apps/auth",
+      "root": "apps/user",
       "entryFile": "main",
-      "sourceRoot": "apps/auth/src",
+      "sourceRoot": "apps/user/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/auth/tsconfig.app.json"
+        "tsConfigPath": "apps/user/tsconfig.app.json"
       }
     },
     "employee": {
