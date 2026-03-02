@@ -6,27 +6,34 @@ import {
     GetEmployeesDto,
     UpdateEmployeeDto,
 } from 'common/dto/employee.dto';
+import {
+    CREATE_EMPLOYEE,
+    DELETE_EMPLOYEE,
+    GET_EMPLOYEE_BY_ID,
+    GET_EMPLOYEES,
+    UPDATE_EMPLOYEE,
+} from 'libs/common/const';
 
 @Controller()
 export class EmployeeController {
     constructor(private readonly employeeService: EmployeeService) {}
 
-    @MessagePattern('get_employees')
+    @MessagePattern(GET_EMPLOYEES)
     async getEmployees(@Payload('data') dto: GetEmployeesDto) {
         return this.employeeService.getEmployees(dto);
     }
 
-    @MessagePattern('get_employee_by_id')
+    @MessagePattern(GET_EMPLOYEE_BY_ID)
     async getEmployeeById(@Payload('id') id: string) {
         return this.employeeService.getEmployeeById(id);
     }
 
-    @MessagePattern('create_employee')
+    @MessagePattern(CREATE_EMPLOYEE)
     async createEmployee(@Payload('data') dto: CreateEmployeeDto) {
         return this.employeeService.createEmployee(dto);
     }
 
-    @MessagePattern('update_employee')
+    @MessagePattern(UPDATE_EMPLOYEE)
     async updateEmployee(
         @Payload('id') id: string,
         @Payload('data') dto: UpdateEmployeeDto,
@@ -34,7 +41,7 @@ export class EmployeeController {
         return this.employeeService.updateEmployee(id, dto);
     }
 
-    @MessagePattern('delete_employee')
+    @MessagePattern(DELETE_EMPLOYEE)
     async deleteEmployee(@Payload('id') id: string) {
         return this.employeeService.deleteEmployee(id);
     }

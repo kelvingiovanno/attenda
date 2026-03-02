@@ -2,17 +2,22 @@ import { Controller } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AttendancePaginationDto } from 'common/dto/attendace.dto';
+import {
+    ATTENDANCE_CHECKIN,
+    ATTENDANCE_LIST,
+    ATTENDANCE_RECENT,
+} from 'libs/common/const';
 
 @Controller()
 export class AttendanceController {
     constructor(private readonly attendanceService: AttendanceService) {}
 
-    @MessagePattern('attendance_recent')
+    @MessagePattern(ATTENDANCE_RECENT)
     recent(@Payload('id') employeeId: string) {
         return this.attendanceService.recent(employeeId);
     }
 
-    @MessagePattern('attendance_check_in')
+    @MessagePattern(ATTENDANCE_CHECKIN)
     checkin(
         @Payload('id') employeeId: string,
         @Payload('photoUrl') photoUrl: string,
@@ -20,7 +25,7 @@ export class AttendanceController {
         return this.attendanceService.checkIn(employeeId, photoUrl);
     }
 
-    @MessagePattern('attendance_list')
+    @MessagePattern(ATTENDANCE_LIST)
     list(@Payload('data') dto: AttendancePaginationDto) {
         return this.attendanceService.list(dto);
     }

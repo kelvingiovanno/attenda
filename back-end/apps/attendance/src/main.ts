@@ -4,6 +4,7 @@ import { AsyncMicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { RpcValidationErrorException } from 'common/errors/rpc-error';
+import { ResponseInterceptor } from './interceptor/response.interceptor';
 
 async function bootstrap() {
     const app = await NestFactory.createMicroservice<AsyncMicroserviceOptions>(
@@ -21,6 +22,8 @@ async function bootstrap() {
             inject: [ConfigService],
         },
     );
+
+    app.useGlobalInterceptors(new ResponseInterceptor());
 
     app.useGlobalPipes(
         new ValidationPipe({

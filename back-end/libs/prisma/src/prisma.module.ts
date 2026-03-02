@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { ConfigModule } from '@nestjs/config';
+import { IsEmailUniqueValidator } from './providers/is-email-unique-validator';
 
 @Module({
     imports: [
@@ -8,7 +9,7 @@ import { ConfigModule } from '@nestjs/config';
             isGlobal: true,
         }),
     ],
-    providers: [PrismaService],
+    providers: [PrismaService, IsEmailUniqueValidator],
     exports: [PrismaService],
 })
 export class PrismaModule {}

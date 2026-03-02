@@ -2,8 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { EmployeeModule } from './employee.module';
 import { AsyncMicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
-import { RpcValidationErrorException } from 'common/errors/rpc-error';
 import { ConfigService } from '@nestjs/config';
+import { ResponseInterceptor } from './interceptor/response.interceptor';
+import { AuthGuard } from './auth/auth.guard';
+import { RpcValidationException } from 'libs/common/error';
 
 async function bootstrap() {
     const app = await NestFactory.createMicroservice<AsyncMicroserviceOptions>(
@@ -26,13 +28,17 @@ async function bootstrap() {
         },
     );
 
+    app.useGlobalGuards(new AuthGuard());
+
+    app.useGlobalInterceptors(new ResponseInterceptor());
+
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
             forbidNonWhitelisted: true,
             transform: true,
             exceptionFactory(errors) {
-                throw new RpcValidationErrorException(
+                throw new RpcValidationException(
                     'Validation error.',
                     errors.map((e) => Object.values(e.constraints!)).flat(),
                 );

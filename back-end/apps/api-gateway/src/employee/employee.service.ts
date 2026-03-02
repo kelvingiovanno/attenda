@@ -1,10 +1,4 @@
-import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    InternalServerErrorException,
-    NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { EMPLOYEE_SERVICE } from 'common/const';
 import {
@@ -12,8 +6,14 @@ import {
     GetEmployeesDto,
     UpdateEmployeeDto,
 } from 'common/dto/employee.dto';
-import { isRpcError, RpcErrorCode } from 'common/errors/rpc-error';
 import { Employee } from 'generated/prisma/client';
+import {
+    CREATE_EMPLOYEE,
+    DELETE_EMPLOYEE,
+    GET_EMPLOYEE_BY_ID,
+    GET_EMPLOYEES,
+    UPDATE_EMPLOYEE,
+} from 'libs/common/const';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -24,86 +24,43 @@ export class EmployeeService {
     ) {}
 
     async getEmployees(dto: GetEmployeesDto) {
-        try {
-            return await firstValueFrom(
-                this.clientEmployeeService.send<Employee[]>('get_employees', {
-                    data: dto,
-                }),
-            );
-        } catch {
-            throw new InternalServerErrorException('Something wrong...');
-        }
+        return await firstValueFrom(
+            this.clientEmployeeService.send<Employee[]>(GET_EMPLOYEES, {
+                data: dto,
+            }),
+        );
     }
 
     async getEmployeeById(employeeId: string) {
-        try {
-            return await firstValueFrom(
-                this.clientEmployeeService.send<Employee>(
-                    'get_employee_by_id',
-                    {
-                        id: employeeId,
-                    },
-                ),
-            );
-        } catch (err: unknown) {
-            if (isRpcError(err) && err.code === RpcErrorCode.NOT_RECORD) {
-                throw new NotFoundException('Not record found.');
-            }
-
-            throw new InternalServerErrorException('Something wrong...');
-        }
+        return await firstValueFrom(
+            this.clientEmployeeService.send<Employee>(GET_EMPLOYEE_BY_ID, {
+                id: employeeId,
+            }),
+        );
     }
 
     async createEmployee(dto: CreateEmployeeDto) {
-        try {
-            return await firstValueFrom(
-                this.clientEmployeeService.send<Employee>('create_employee', {
-                    data: dto,
-                }),
-            );
-        } catch (err: unknown) {
-            if (isRpcError(err) && err.code === RpcErrorCode.NOT_RECORD) {
-                throw new NotFoundException('Not record found.');
-            }
-
-            if (isRpcError(err) && err.code === RpcErrorCode.VALIDATION_ERROR) {
-                throw new BadRequestException(err.message);
-            }
-
-            throw new InternalServerErrorException('Something wrong...');
-        }
+        return await firstValueFrom(
+            this.clientEmployeeService.send<Employee>(CREATE_EMPLOYEE, {
+                data: dto,
+            }),
+        );
     }
 
     async updateEmployee(employeeId: string, dto: UpdateEmployeeDto) {
-        try {
-            return await firstValueFrom(
-                this.clientEmployeeService.send<Employee>('update_employee', {
-                    id: employeeId,
-                    data: dto,
-                }),
-            );
-        } catch (err: unknown) {
-            if (isRpcError(err) && err.code === RpcErrorCode.NOT_RECORD) {
-                throw new NotFoundException('Record not found.');
-            }
-
-            throw new InternalServerErrorException('Something wrong...');
-        }
+        return await firstValueFrom(
+            this.clientEmployeeService.send<Employee>(UPDATE_EMPLOYEE, {
+                id: employeeId,
+                data: dto,
+            }),
+        );
     }
 
     async deleteEmployee(employeeId: string) {
-        try {
-            return await firstValueFrom(
-                this.clientEmployeeService.send<Employee>('delete_employee', {
-                    id: employeeId,
-                }),
-            );
-        } catch (err: unknown) {
-            if (isRpcError(err) && err.code === RpcErrorCode.NOT_RECORD) {
-                throw new NotFoundException('Record not found.');
-            }
-
-            throw new InternalServerErrorException();
-        }
+        return await firstValueFrom(
+            this.clientEmployeeService.send<Employee>(DELETE_EMPLOYEE, {
+                id: employeeId,
+            }),
+        );
     }
 }

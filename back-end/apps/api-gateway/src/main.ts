@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ApiGatewayModule } from './api-gateway.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import { GlobalRpcExceptionFilter } from './filter/globalException.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create(ApiGatewayModule);
@@ -16,6 +17,8 @@ async function bootstrap() {
             transform: true,
         }),
     );
+
+    app.useGlobalFilters(new GlobalRpcExceptionFilter());
 
     await app.listen(port);
 

@@ -1,8 +1,8 @@
 import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import { AttendancePaginationDto } from 'common/dto/attendace.dto';
-import { RpcNotRecordException } from 'common/errors/rpc-error';
 import { Attendance, AttendanceStatus } from 'generated/prisma/client';
+import { RpcNotFoundException } from 'libs/common/error';
 
 @Injectable()
 export class AttendanceService {
@@ -19,10 +19,8 @@ export class AttendanceService {
             take: 3,
         });
 
-        console.log(attendances);
-
         if (!attendances) {
-            throw new RpcNotRecordException('Employee not found.');
+            throw new RpcNotFoundException('Employee not found.');
         }
 
         return attendances;
@@ -48,7 +46,7 @@ export class AttendanceService {
         });
 
         if (attendance) {
-            throw new RpcNotRecordException('Employee not found.');
+            throw new RpcNotFoundException('Employee not found.');
         }
 
         const lateLimit = new Date(now);

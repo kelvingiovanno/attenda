@@ -1,17 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { Employee } from 'generated/prisma/browser';
-import {
-    EmployeeCreateInput,
-    EmployeeUpdateInput,
-} from 'generated/prisma/models';
-import {
-    RpcInternalErrorException,
-    RpcNotRecordException,
-    RpcValidationErrorException,
-} from 'common/errors/rpc-error';
 import { PrismaService } from '@app/prisma';
-import { GetEmployeesDto } from 'common/dto/employee.dto';
+import {
+    CreateEmployeeDto,
+    GetEmployeesDto,
+    UpdateEmployeeDto,
+} from 'common/dto/employee.dto';
+import { RpcConflictException, RpcNotFoundException } from 'libs/common/error';
 
 @Injectable()
 export class EmployeeService {
@@ -38,84 +33,79 @@ export class EmployeeService {
         });
 
         if (!employee) {
-            throw new RpcNotRecordException('Employee not found.');
+            throw new RpcNotFoundException('Employee not found.');
         }
 
         return employee;
     }
 
-    async createEmployee(data: EmployeeCreateInput): Promise<Employee> {
-        try {
-            const employee = await this.prisma.employee.create({
-                data: data,
-            });
+    async createEmployee(data: CreateEmployeeDto): Promise<Employee> {
+        const isEmailUnique = await this.prisma.employee.findUnique({
+            where: { email: data.email },
+        });
 
-            return employee;
-        } catch (err) {
-            if (err instanceof PrismaClientKnownRequestError) {
-                if (err.code === '2025') {
-                    throw new RpcNotRecordException('Employee not found.');
-                }
-
-                if (err.code === 'P2002') {
-                    throw new RpcValidationErrorException(
-                        'Unique constraint violated.',
-                    );
-                }
-            }
-
-            throw new RpcInternalErrorException('Database error.');
+        if (isEmailUnique) {
+            throw new RpcConflictException('Email already registered.');
         }
+
+        const newEmployee = await this.prisma.employee.create({
+            data: data,
+        });
+
+        return newEmployee;
     }
 
     async updateEmployee(
         id: string,
-        data: EmployeeUpdateInput,
+        data: UpdateEmployeeDto,
     ): Promise<Employee> {
-        try {
-            const employee = await this.prisma.employee.update({
-                where: { id: id },
-                data: data,
-            });
+        const employee = await this.prisma.employee.findUnique({
+            where: { id: id },
+        });
 
-            return employee;
-        } catch (err) {
-            if (err instanceof PrismaClientKnownRequestError) {
-                if (err.code === '2025') {
-                    throw new RpcNotRecordException('Employee not found.');
-                }
-
-                if (err.code === 'P2002') {
-                    throw new RpcValidationErrorException(err.message);
-                }
-            }
-
-            throw new RpcInternalErrorException('Database error.');
+        if (!employee) {
+            throw new RpcNotFoundException('Employee not found.');
         }
+
+        if (data.email) {
+            const isEmployeeEmailUnique = await this.prisma.employee.findUnique(
+                {
+                    where: { email: data.email },
+                },
+            );
+
+            if (isEmployeeEmailUnique) {
+                throw new RpcConflictException('Email already registered');
+            }
+        }
+
+        const updateEmployee = await this.prisma.employee.update({
+            where: { id: id },
+            data: data,
+        });
+
+        return updateEmployee;
     }
 
     async deleteEmployee(id: string): Promise<Employee> {
-        try {
-            const employee = await this.prisma.employee.update({
-                where: {
-                    id: id,
-                    deletedAt: null,
-                },
-                data: {
-                    deletedAt: new Date(),
-                },
-            });
+        const employee = await this.prisma.employee.findUnique({
+            where: {
+                id: id,
+                deletedAt: null,
+            },
+        });
 
-            return employee;
-        } catch (err) {
-            if (
-                err instanceof PrismaClientKnownRequestError &&
-                err.code === '2025'
-            ) {
-                throw new RpcNotRecordException('Employee not found.');
-            }
-
-            throw new RpcInternalErrorException('Database error.');
+        if (!employee) {
+            throw new RpcNotFoundException('Employee not found.');
         }
+
+        const deletedEmployee = await this.prisma.employee.update({
+            where: { id: id },
+            data: {
+                deletedAt: new Date(),
+            },
+        });
+
+        return deletedEmployee;
     }
 }
