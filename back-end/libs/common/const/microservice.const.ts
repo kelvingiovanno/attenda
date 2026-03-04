@@ -1,4 +1,10 @@
 /**
+ * AUTH SERVICES
+ */
+export const AUTH_SERVICE = 'AUTH_SERVICE';
+export const AUTH_LOGIN = 'AUTH_LOGIN';
+
+/**
  *  EMPLOYE SERVICES
  */
 export const EMPLOYEE_SERVICE = 'EMPLOYEE_SERVICE';

@@ -1,25 +1,19 @@
 import { NestFactory } from '@nestjs/core';
-import { EmployeeModule } from './employee.module';
+import { AuthModule } from './auth.module';
 import { AsyncMicroserviceOptions, Transport } from '@nestjs/microservices';
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RpcValidationException } from 'libs/common/error';
+import { ValidationPipe } from '@nestjs/common';
+import { RpcValidationErrorException } from 'common/errors/rpc-error';
 
 async function bootstrap() {
     const app = await NestFactory.createMicroservice<AsyncMicroserviceOptions>(
-        EmployeeModule,
+        AuthModule,
         {
             useFactory: (configService: ConfigService) => ({
                 transport: Transport.TCP,
                 options: {
-                    host: configService.getOrThrow<string>(
-                        'EMPLOYEE_SERVICE_HOST',
-                    ),
-                    port: configService.getOrThrow<number>(
-                        'EMPLOYEE_SERVICE_PORT',
-                    ),
-                    retryAttempts:
-                        configService.getOrThrow<number>('TCP_RETRY_ATTEMPTS'),
+                    host: configService.getOrThrow<string>('AUTH_SERVICE_HOST'),
+                    port: configService.getOrThrow<number>('AUTH_SERVICE_PORT'),
                 },
             }),
             inject: [ConfigService],
@@ -32,7 +26,7 @@ async function bootstrap() {
             forbidNonWhitelisted: true,
             transform: true,
             exceptionFactory(errors) {
-                throw new RpcValidationException(
+                throw new RpcValidationErrorException(
                     'Validation error.',
                     errors.map((e) => Object.values(e.constraints!)).flat(),
                 );
@@ -43,10 +37,10 @@ async function bootstrap() {
     await app.listen();
 
     const configService = app.get(ConfigService);
-    const host = configService.getOrThrow<string>('EMPLOYEE_SERVICE_HOST');
-    const port = configService.getOrThrow<string>('EMPLOYEE_SERVICE_PORT');
+    const host = configService.getOrThrow<string>('ATTENDANCE_SERVICE_HOST');
+    const port = configService.getOrThrow<string>('ATTENDANCE_SERVICE_PORT');
 
-    console.log(`EMPLOYEE MICROSERVICE RUNNING ON ${host}:${port}`);
+    console.log(`AUTH MICROSERVICE RUNNING ON ${host}:${port}`);
 }
 
 void bootstrap();
